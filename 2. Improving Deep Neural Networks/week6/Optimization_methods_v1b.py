@@ -26,7 +26,7 @@
 # * In `model` function, the total cost per mini-batch is accumulated, and the average of the entire epoch is taken as the average cost. So the plot of the cost function over time is now a smooth downward curve instead of an oscillating curve.
 # * Print statements used to check each function are reformatted, and 'expected output` is reformatted to match the format of the print statements (for easier visual comparisons).
 
-# In[20]:
+# In[39]:
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -55,7 +55,7 @@ plt.rcParams['image.cmap'] = 'gray'
 # 
 # where L is the number of layers and $\alpha$ is the learning rate. All parameters should be stored in the `parameters` dictionary. Note that the iterator `l` starts at 0 in the `for` loop while the first parameters are $W^{[1]}$ and $b^{[1]}$. You need to shift `l` to `l+1` when coding.
 
-# In[21]:
+# In[40]:
 
 # GRADED FUNCTION: update_parameters_with_gd
 
@@ -88,7 +88,7 @@ def update_parameters_with_gd(parameters, grads, learning_rate):
     return parameters
 
 
-# In[22]:
+# In[41]:
 
 parameters, grads, learning_rate = update_parameters_with_gd_test_case()
 
@@ -200,7 +200,7 @@ print("b2 =\n" + str(parameters["b2"]))
 # 
 # Note that the last mini-batch might end up smaller than `mini_batch_size=64`. Let $\lfloor s \rfloor$ represents $s$ rounded down to the nearest integer (this is `math.floor(s)` in Python). If the total number of examples is not a multiple of `mini_batch_size=64` then there will be $\lfloor \frac{m}{mini\_batch\_size}\rfloor$ mini-batches with a full 64 examples, and the number of examples in the final mini-batch will be ($m-mini_\_batch_\_size \times \lfloor \frac{m}{mini\_batch\_size}\rfloor$). 
 
-# In[23]:
+# In[42]:
 
 # GRADED FUNCTION: random_mini_batches
 
@@ -248,7 +248,7 @@ def random_mini_batches(X, Y, mini_batch_size = 64, seed = 0):
     return mini_batches
 
 
-# In[24]:
+# In[43]:
 
 X_assess, Y_assess, mini_batch_size = random_mini_batches_test_case()
 mini_batches = random_mini_batches(X_assess, Y_assess, mini_batch_size)
@@ -321,7 +321,7 @@ print ("mini batch sanity check: " + str(mini_batches[0][0][0][0:3]))
 # ```
 # **Note** that the iterator l starts at 0 in the for loop while the first parameters are v["dW1"] and v["db1"] (that's a "one" on the superscript). This is why we are shifting l to l+1 in the `for` loop.
 
-# In[25]:
+# In[44]:
 
 # GRADED FUNCTION: initialize_velocity
 
@@ -354,7 +354,7 @@ def initialize_velocity(parameters):
     return v
 
 
-# In[26]:
+# In[45]:
 
 parameters = initialize_velocity_test_case()
 
@@ -398,7 +398,7 @@ print("v[\"db2\"] =\n" + str(v["db2"]))
 # 
 # where L is the number of layers, $\beta$ is the momentum and $\alpha$ is the learning rate. All parameters should be stored in the `parameters` dictionary.  Note that the iterator `l` starts at 0 in the `for` loop while the first parameters are $W^{[1]}$ and $b^{[1]}$ (that's a "one" on the superscript). So you will need to shift `l` to `l+1` when coding.
 
-# In[27]:
+# In[46]:
 
 # GRADED FUNCTION: update_parameters_with_momentum
 
@@ -441,7 +441,7 @@ def update_parameters_with_momentum(parameters, grads, v, beta, learning_rate):
     return parameters, v
 
 
-# In[28]:
+# In[47]:
 
 parameters, grads, v = update_parameters_with_momentum_test_case()
 
@@ -542,7 +542,7 @@ print("v[\"db2\"] = v" + str(v["db2"]))
 # 
 # ```
 
-# In[29]:
+# In[48]:
 
 # GRADED FUNCTION: initialize_adam
 
@@ -583,7 +583,7 @@ def initialize_adam(parameters) :
     return v, s
 
 
-# In[30]:
+# In[49]:
 
 parameters = initialize_adam_test_case()
 
@@ -644,7 +644,7 @@ print("s[\"db2\"] = \n" + str(s["db2"]))
 # 
 # **Note** that the iterator `l` starts at 0 in the `for` loop while the first parameters are $W^{[1]}$ and $b^{[1]}$. You need to shift `l` to `l+1` when coding.
 
-# In[31]:
+# In[57]:
 
 # GRADED FUNCTION: update_parameters_with_adam
 
@@ -705,14 +705,14 @@ def update_parameters_with_adam(parameters, grads, v, s, t, learning_rate = 0.01
 
         # Update parameters. Inputs: "parameters, learning_rate, v_corrected, s_corrected, epsilon". Output: "parameters".
         ### START CODE HERE ### (approx. 2 lines)
-        parameters["W" + str(l+1)] = None
-        parameters["b" + str(l+1)] = None
+        parameters["W" + str(l+1)] = parameters["W" + str(l+1)]-learning_rate*(v_corrected["dW" + str(l+1)]/(np.power(s_corrected["dW" + str(l+1)],0.5)+epsilon))
+        parameters["b" + str(l+1)] = parameters["b" + str(l+1)]-learning_rate*(v_corrected["db" + str(l+1)]/(np.power(s_corrected["db" + str(l+1)],0.5)+epsilon))
         ### END CODE HERE ###
 
     return parameters, v, s
 
 
-# In[32]:
+# In[58]:
 
 parameters, grads, v, s = update_parameters_with_adam_test_case()
 parameters, v, s  = update_parameters_with_adam(parameters, grads, v, s, t = 2)
@@ -784,7 +784,7 @@ print("s[\"db2\"] = \n" + str(s["db2"]))
 # 
 # Lets use the following "moons" dataset to test the different optimization methods. (The dataset is named "moons" because the data from each of the two classes looks a bit like a crescent-shaped moon.) 
 
-# In[33]:
+# In[52]:
 
 train_X, train_Y = load_dataset()
 
@@ -797,7 +797,7 @@ train_X, train_Y = load_dataset()
 # - Mini-batch **Adam**: it will call your functions:
 #     - `initialize_adam()` and `update_parameters_with_adam()`
 
-# In[34]:
+# In[59]:
 
 def model(X, Y, layers_dims, optimizer, learning_rate = 0.0007, mini_batch_size = 64, beta = 0.9,
           beta1 = 0.9, beta2 = 0.999,  epsilon = 1e-8, num_epochs = 10000, print_cost = True):
@@ -893,7 +893,7 @@ def model(X, Y, layers_dims, optimizer, learning_rate = 0.0007, mini_batch_size 
 # 
 # Run the following code to see how the model does with mini-batch gradient descent.
 
-# In[ ]:
+# In[60]:
 
 # train 3-layer model
 layers_dims = [train_X.shape[0], 5, 2, 1]
@@ -914,7 +914,7 @@ plot_decision_boundary(lambda x: predict_dec(parameters, x.T), train_X, train_Y)
 # 
 # Run the following code to see how the model does with momentum. Because this example is relatively simple, the gains from using momemtum are small; but for more complex problems you might see bigger gains.
 
-# In[ ]:
+# In[61]:
 
 # train 3-layer model
 layers_dims = [train_X.shape[0], 5, 2, 1]
@@ -935,7 +935,7 @@ plot_decision_boundary(lambda x: predict_dec(parameters, x.T), train_X, train_Y)
 # 
 # Run the following code to see how the model does with Adam.
 
-# In[ ]:
+# In[62]:
 
 # train 3-layer model
 layers_dims = [train_X.shape[0], 5, 2, 1]
