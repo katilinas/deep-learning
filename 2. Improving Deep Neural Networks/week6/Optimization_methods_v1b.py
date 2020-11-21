@@ -26,7 +26,7 @@
 # * In `model` function, the total cost per mini-batch is accumulated, and the average of the entire epoch is taken as the average cost. So the plot of the cost function over time is now a smooth downward curve instead of an oscillating curve.
 # * Print statements used to check each function are reformatted, and 'expected output` is reformatted to match the format of the print statements (for easier visual comparisons).
 
-# In[ ]:
+# In[1]:
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -55,7 +55,7 @@ plt.rcParams['image.cmap'] = 'gray'
 # 
 # where L is the number of layers and $\alpha$ is the learning rate. All parameters should be stored in the `parameters` dictionary. Note that the iterator `l` starts at 0 in the `for` loop while the first parameters are $W^{[1]}$ and $b^{[1]}$. You need to shift `l` to `l+1` when coding.
 
-# In[ ]:
+# In[4]:
 
 # GRADED FUNCTION: update_parameters_with_gd
 
@@ -81,14 +81,14 @@ def update_parameters_with_gd(parameters, grads, learning_rate):
     # Update rule for each parameter
     for l in range(L):
         ### START CODE HERE ### (approx. 2 lines)
-        parameters["W" + str(l+1)] = None
-        parameters["b" + str(l+1)] = None
+        parameters["W" + str(l+1)] = parameters["W" + str(l+1)] - learning_rate*grads['dW' + str(l+1)] 
+        parameters["b" + str(l+1)] = parameters["b" + str(l+1)] - learning_rate*grads['db' + str(l+1)]
         ### END CODE HERE ###
         
     return parameters
 
 
-# In[ ]:
+# In[5]:
 
 parameters, grads, learning_rate = update_parameters_with_gd_test_case()
 
@@ -200,7 +200,7 @@ print("b2 =\n" + str(parameters["b2"]))
 # 
 # Note that the last mini-batch might end up smaller than `mini_batch_size=64`. Let $\lfloor s \rfloor$ represents $s$ rounded down to the nearest integer (this is `math.floor(s)` in Python). If the total number of examples is not a multiple of `mini_batch_size=64` then there will be $\lfloor \frac{m}{mini\_batch\_size}\rfloor$ mini-batches with a full 64 examples, and the number of examples in the final mini-batch will be ($m-mini_\_batch_\_size \times \lfloor \frac{m}{mini\_batch\_size}\rfloor$). 
 
-# In[ ]:
+# In[8]:
 
 # GRADED FUNCTION: random_mini_batches
 
@@ -230,8 +230,8 @@ def random_mini_batches(X, Y, mini_batch_size = 64, seed = 0):
     num_complete_minibatches = math.floor(m/mini_batch_size) # number of mini batches of size mini_batch_size in your partitionning
     for k in range(0, num_complete_minibatches):
         ### START CODE HERE ### (approx. 2 lines)
-        mini_batch_X = None
-        mini_batch_Y = None
+        mini_batch_X = shuffled_X[:, k*mini_batch_size : (k+1) * mini_batch_size]
+        mini_batch_Y = shuffled_Y[:, k*mini_batch_size : (k+1) * mini_batch_size]
         ### END CODE HERE ###
         mini_batch = (mini_batch_X, mini_batch_Y)
         mini_batches.append(mini_batch)
@@ -239,8 +239,8 @@ def random_mini_batches(X, Y, mini_batch_size = 64, seed = 0):
     # Handling the end case (last mini-batch < mini_batch_size)
     if m % mini_batch_size != 0:
         ### START CODE HERE ### (approx. 2 lines)
-        mini_batch_X = None
-        mini_batch_Y = None
+        mini_batch_X = shuffled_X[:, num_complete_minibatches*mini_batch_size : m]
+        mini_batch_Y = shuffled_Y[:, num_complete_minibatches*mini_batch_size : m]
         ### END CODE HERE ###
         mini_batch = (mini_batch_X, mini_batch_Y)
         mini_batches.append(mini_batch)
@@ -248,7 +248,7 @@ def random_mini_batches(X, Y, mini_batch_size = 64, seed = 0):
     return mini_batches
 
 
-# In[ ]:
+# In[9]:
 
 X_assess, Y_assess, mini_batch_size = random_mini_batches_test_case()
 mini_batches = random_mini_batches(X_assess, Y_assess, mini_batch_size)
