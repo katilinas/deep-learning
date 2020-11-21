@@ -26,7 +26,7 @@
 # * In `model` function, the total cost per mini-batch is accumulated, and the average of the entire epoch is taken as the average cost. So the plot of the cost function over time is now a smooth downward curve instead of an oscillating curve.
 # * Print statements used to check each function are reformatted, and 'expected output` is reformatted to match the format of the print statements (for easier visual comparisons).
 
-# In[1]:
+# In[20]:
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -55,7 +55,7 @@ plt.rcParams['image.cmap'] = 'gray'
 # 
 # where L is the number of layers and $\alpha$ is the learning rate. All parameters should be stored in the `parameters` dictionary. Note that the iterator `l` starts at 0 in the `for` loop while the first parameters are $W^{[1]}$ and $b^{[1]}$. You need to shift `l` to `l+1` when coding.
 
-# In[4]:
+# In[21]:
 
 # GRADED FUNCTION: update_parameters_with_gd
 
@@ -88,7 +88,7 @@ def update_parameters_with_gd(parameters, grads, learning_rate):
     return parameters
 
 
-# In[5]:
+# In[22]:
 
 parameters, grads, learning_rate = update_parameters_with_gd_test_case()
 
@@ -200,7 +200,7 @@ print("b2 =\n" + str(parameters["b2"]))
 # 
 # Note that the last mini-batch might end up smaller than `mini_batch_size=64`. Let $\lfloor s \rfloor$ represents $s$ rounded down to the nearest integer (this is `math.floor(s)` in Python). If the total number of examples is not a multiple of `mini_batch_size=64` then there will be $\lfloor \frac{m}{mini\_batch\_size}\rfloor$ mini-batches with a full 64 examples, and the number of examples in the final mini-batch will be ($m-mini_\_batch_\_size \times \lfloor \frac{m}{mini\_batch\_size}\rfloor$). 
 
-# In[8]:
+# In[23]:
 
 # GRADED FUNCTION: random_mini_batches
 
@@ -248,7 +248,7 @@ def random_mini_batches(X, Y, mini_batch_size = 64, seed = 0):
     return mini_batches
 
 
-# In[9]:
+# In[24]:
 
 X_assess, Y_assess, mini_batch_size = random_mini_batches_test_case()
 mini_batches = random_mini_batches(X_assess, Y_assess, mini_batch_size)
@@ -321,7 +321,7 @@ print ("mini batch sanity check: " + str(mini_batches[0][0][0][0:3]))
 # ```
 # **Note** that the iterator l starts at 0 in the for loop while the first parameters are v["dW1"] and v["db1"] (that's a "one" on the superscript). This is why we are shifting l to l+1 in the `for` loop.
 
-# In[ ]:
+# In[25]:
 
 # GRADED FUNCTION: initialize_velocity
 
@@ -347,14 +347,14 @@ def initialize_velocity(parameters):
     # Initialize velocity
     for l in range(L):
         ### START CODE HERE ### (approx. 2 lines)
-        v["dW" + str(l+1)] = None
-        v["db" + str(l+1)] = None
+        v["dW" + str(l+1)] = np.zeros(parameters["W" + str(l+1)].shape) 
+        v["db" + str(l+1)] = np.zeros(parameters["b" + str(l+1)].shape) 
         ### END CODE HERE ###
         
     return v
 
 
-# In[ ]:
+# In[26]:
 
 parameters = initialize_velocity_test_case()
 
@@ -398,7 +398,7 @@ print("v[\"db2\"] =\n" + str(v["db2"]))
 # 
 # where L is the number of layers, $\beta$ is the momentum and $\alpha$ is the learning rate. All parameters should be stored in the `parameters` dictionary.  Note that the iterator `l` starts at 0 in the `for` loop while the first parameters are $W^{[1]}$ and $b^{[1]}$ (that's a "one" on the superscript). So you will need to shift `l` to `l+1` when coding.
 
-# In[ ]:
+# In[27]:
 
 # GRADED FUNCTION: update_parameters_with_momentum
 
@@ -431,17 +431,17 @@ def update_parameters_with_momentum(parameters, grads, v, beta, learning_rate):
         
         ### START CODE HERE ### (approx. 4 lines)
         # compute velocities
-        v["dW" + str(l+1)] = None
-        v["db" + str(l+1)] = None
+        v["dW" + str(l+1)] = beta*v["dW" + str(l+1)]+ (1-beta)*grads['dW' + str(l+1)]
+        v["db" + str(l+1)] = beta*v["db" + str(l+1)]+ (1-beta)*grads['db' + str(l+1)]
         # update parameters
-        parameters["W" + str(l+1)] = None
-        parameters["b" + str(l+1)] = None
+        parameters["W" + str(l+1)] = parameters["W" + str(l+1)]-learning_rate*v["dW" + str(l+1)]
+        parameters["b" + str(l+1)] = parameters["b" + str(l+1)]-learning_rate*v["db" + str(l+1)]
         ### END CODE HERE ###
         
     return parameters, v
 
 
-# In[ ]:
+# In[28]:
 
 parameters, grads, v = update_parameters_with_momentum_test_case()
 
@@ -542,7 +542,7 @@ print("v[\"db2\"] = v" + str(v["db2"]))
 # 
 # ```
 
-# In[ ]:
+# In[29]:
 
 # GRADED FUNCTION: initialize_adam
 
@@ -574,16 +574,16 @@ def initialize_adam(parameters) :
     # Initialize v, s. Input: "parameters". Outputs: "v, s".
     for l in range(L):
     ### START CODE HERE ### (approx. 4 lines)
-        v["dW" + str(l+1)] = None
-        v["db" + str(l+1)] = None
-        s["dW" + str(l+1)] = None
-        s["db" + str(l+1)] = None
+        v["dW" + str(l+1)] = np.zeros(parameters["W" + str(l+1)].shape)
+        v["db" + str(l+1)] = np.zeros(parameters["b" + str(l+1)].shape)
+        s["dW" + str(l+1)] = np.zeros(parameters["W" + str(l+1)].shape)
+        s["db" + str(l+1)] = np.zeros(parameters["b" + str(l+1)].shape)
     ### END CODE HERE ###
     
     return v, s
 
 
-# In[ ]:
+# In[30]:
 
 parameters = initialize_adam_test_case()
 
@@ -644,7 +644,7 @@ print("s[\"db2\"] = \n" + str(s["db2"]))
 # 
 # **Note** that the iterator `l` starts at 0 in the `for` loop while the first parameters are $W^{[1]}$ and $b^{[1]}$. You need to shift `l` to `l+1` when coding.
 
-# In[ ]:
+# In[31]:
 
 # GRADED FUNCTION: update_parameters_with_adam
 
@@ -681,26 +681,26 @@ def update_parameters_with_adam(parameters, grads, v, s, t, learning_rate = 0.01
     for l in range(L):
         # Moving average of the gradients. Inputs: "v, grads, beta1". Output: "v".
         ### START CODE HERE ### (approx. 2 lines)
-        v["dW" + str(l+1)] = None
-        v["db" + str(l+1)] = None
+        v["dW" + str(l+1)] = beta1*v["dW" + str(l+1)]+ (1-beta1)*grads['dW' + str(l+1)]
+        v["db" + str(l+1)] = beta1*v["db" + str(l+1)]+ (1-beta1)*grads['db' + str(l+1)]
         ### END CODE HERE ###
 
         # Compute bias-corrected first moment estimate. Inputs: "v, beta1, t". Output: "v_corrected".
         ### START CODE HERE ### (approx. 2 lines)
-        v_corrected["dW" + str(l+1)] = None
-        v_corrected["db" + str(l+1)] = None
+        v_corrected["dW" + str(l+1)] = v["dW" + str(l+1)]/(1-np.power(beta1,t))
+        v_corrected["db" + str(l+1)] = v["db" + str(l+1)]/(1-np.power(beta1,t))
         ### END CODE HERE ###
 
         # Moving average of the squared gradients. Inputs: "s, grads, beta2". Output: "s".
         ### START CODE HERE ### (approx. 2 lines)
-        s["dW" + str(l+1)] = None
-        s["db" + str(l+1)] = None
+        s["dW" + str(l+1)] = beta2*s["dW" + str(l+1)]+ (1-beta2)*np.power(grads['dW' + str(l+1)],2)
+        s["db" + str(l+1)] = beta2*s["db" + str(l+1)]+ (1-beta2)*np.power(grads['db' + str(l+1)],2)
         ### END CODE HERE ###
 
         # Compute bias-corrected second raw moment estimate. Inputs: "s, beta2, t". Output: "s_corrected".
         ### START CODE HERE ### (approx. 2 lines)
-        s_corrected["dW" + str(l+1)] = None
-        s_corrected["db" + str(l+1)] = None
+        s_corrected["dW" + str(l+1)] = s["dW" + str(l+1)]/(1-np.power(beta2,t))
+        s_corrected["db" + str(l+1)] = s["db" + str(l+1)]/(1-np.power(beta2,t))
         ### END CODE HERE ###
 
         # Update parameters. Inputs: "parameters, learning_rate, v_corrected, s_corrected, epsilon". Output: "parameters".
@@ -712,7 +712,7 @@ def update_parameters_with_adam(parameters, grads, v, s, t, learning_rate = 0.01
     return parameters, v, s
 
 
-# In[ ]:
+# In[32]:
 
 parameters, grads, v, s = update_parameters_with_adam_test_case()
 parameters, v, s  = update_parameters_with_adam(parameters, grads, v, s, t = 2)
@@ -784,7 +784,7 @@ print("s[\"db2\"] = \n" + str(s["db2"]))
 # 
 # Lets use the following "moons" dataset to test the different optimization methods. (The dataset is named "moons" because the data from each of the two classes looks a bit like a crescent-shaped moon.) 
 
-# In[ ]:
+# In[33]:
 
 train_X, train_Y = load_dataset()
 
@@ -797,7 +797,7 @@ train_X, train_Y = load_dataset()
 # - Mini-batch **Adam**: it will call your functions:
 #     - `initialize_adam()` and `update_parameters_with_adam()`
 
-# In[ ]:
+# In[34]:
 
 def model(X, Y, layers_dims, optimizer, learning_rate = 0.0007, mini_batch_size = 64, beta = 0.9,
           beta1 = 0.9, beta2 = 0.999,  epsilon = 1e-8, num_epochs = 10000, print_cost = True):
