@@ -510,7 +510,7 @@ print ("ones = " + str(ones([3])))
 # 
 # Run the following code to load the dataset.
 
-# In[ ]:
+# In[26]:
 
 # Loading the dataset
 X_train_orig, Y_train_orig, X_test_orig, Y_test_orig, classes = load_dataset()
@@ -518,17 +518,17 @@ X_train_orig, Y_train_orig, X_test_orig, Y_test_orig, classes = load_dataset()
 
 # Change the index below and run the cell to visualize some examples in the dataset.
 
-# In[ ]:
+# In[32]:
 
 # Example of a picture
-index = 0
+index = 120
 plt.imshow(X_train_orig[index])
 print ("y = " + str(np.squeeze(Y_train_orig[:, index])))
 
 
 # As usual you flatten the image dataset, then normalize it by dividing by 255. On top of that, you will convert each label to a one-hot vector as shown in Figure 1. Run the cell below to do so.
 
-# In[ ]:
+# In[33]:
 
 # Flatten the training and test images
 X_train_flatten = X_train_orig.reshape(X_train_orig.shape[0], -1).T
@@ -560,7 +560,7 @@ print ("Y_test shape: " + str(Y_test.shape))
 # 
 # **Exercise:** Implement the function below to create the placeholders in tensorflow.
 
-# In[ ]:
+# In[34]:
 
 # GRADED FUNCTION: create_placeholders
 
@@ -582,14 +582,14 @@ def create_placeholders(n_x, n_y):
     """
 
     ### START CODE HERE ### (approx. 2 lines)
-    X = None
-    Y = None
+    X = tf.placeholder(tf.float32, shape=[n_x, None], name = "X")
+    Y = tf.placeholder(tf.float32, shape=[n_y, None], name = "Y")
     ### END CODE HERE ###
     
     return X, Y
 
 
-# In[ ]:
+# In[35]:
 
 X, Y = create_placeholders(12288, 6)
 print ("X = " + str(X))
