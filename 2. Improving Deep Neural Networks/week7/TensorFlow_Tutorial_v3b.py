@@ -299,7 +299,7 @@ print ("sigmoid(12) = " + str(sigmoid(12)))
 # 
 # 
 
-# In[ ]:
+# In[10]:
 
 # GRADED FUNCTION: cost
 
@@ -321,27 +321,27 @@ def cost(logits, labels):
     ### START CODE HERE ### 
     
     # Create the placeholders for "logits" (z) and "labels" (y) (approx. 2 lines)
-    z = None
-    y = None
+    z = tf.placeholder(tf.float32, name="z")
+    y = tf.placeholder(tf.float32, name="y")
     
     # Use the loss function (approx. 1 line)
-    cost = None
+    cost = tf.nn.sigmoid_cross_entropy_with_logits(logits = z,  labels = y)
     
     # Create a session (approx. 1 line). See method 1 above.
-    sess = None
+    sess = tf.Session()
     
     # Run the session (approx. 1 line).
-    cost = None
+    cost = sess.run(cost, feed_dict = {z: logits, y:labels})
     
     # Close the session (approx. 1 line). See method 1 above.
-    None
+    sess.close()
     
     ### END CODE HERE ###
     
     return cost
 
 
-# In[ ]:
+# In[11]:
 
 logits = np.array([0.2,0.4,0.7,0.9])
 
@@ -368,7 +368,7 @@ print ("cost = " + str(cost))
 # 
 # **Exercise:** Implement the function below to take one vector of labels and the total number of classes $C$, and return the one hot encoding. Use `tf.one_hot()` to do this. 
 
-# In[ ]:
+# In[22]:
 
 # GRADED FUNCTION: one_hot_matrix
 
@@ -389,26 +389,26 @@ def one_hot_matrix(labels, C):
     ### START CODE HERE ###
     
     # Create a tf.constant equal to C (depth), name it 'C'. (approx. 1 line)
-    C = None
+    C = tf.constant(C, name = "C")
     
     # Use tf.one_hot, be careful with the axis (approx. 1 line)
-    one_hot_matrix = None
+    one_hot_matrix = tf.one_hot(labels, C, axis=0)
     
     # Create the session (approx. 1 line)
-    sess = None
+    sess = tf.Session()
     
     # Run the session (approx. 1 line)
-    one_hot = None
+    one_hot = sess.run(one_hot_matrix)
     
     # Close the session (approx. 1 line). See method 1 above.
-    None
+    sess.close()
     
     ### END CODE HERE ###
     
     return one_hot
 
 
-# In[ ]:
+# In[23]:
 
 labels = np.array([1,2,3,0,2,1])
 one_hot = one_hot_matrix(labels, C = 4)
@@ -434,7 +434,7 @@ print ("one_hot = \n" + str(one_hot))
 #  - tf.ones(shape)
 # 
 
-# In[ ]:
+# In[24]:
 
 # GRADED FUNCTION: ones
 
@@ -452,22 +452,22 @@ def ones(shape):
     ### START CODE HERE ###
     
     # Create "ones" tensor using tf.ones(...). (approx. 1 line)
-    ones = None
+    ones = tf.ones(shape)
     
     # Create the session (approx. 1 line)
-    sess = None
+    sess = tf.Session()
     
     # Run the session to compute 'ones' (approx. 1 line)
-    ones = None
+    ones = sess.run(ones)
     
     # Close the session (approx. 1 line). See method 1 above.
-    None
+    sess.close()
     
     ### END CODE HERE ###
     return ones
 
 
-# In[ ]:
+# In[25]:
 
 print ("ones = " + str(ones([3])))
 
