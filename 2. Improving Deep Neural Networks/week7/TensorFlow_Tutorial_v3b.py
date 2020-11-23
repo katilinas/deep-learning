@@ -34,7 +34,7 @@
 # 
 # To start, you will import the library:
 
-# In[ ]:
+# In[1]:
 
 import math
 import numpy as np
@@ -51,7 +51,7 @@ np.random.seed(1)
 # Now that you have imported the library, we will walk you through its different applications. You will start with an example, where we compute for you the loss of one training example. 
 # $$loss = \mathcal{L}(\hat{y}, y) = (\hat y^{(i)} - y^{(i)})^2 \tag{1}$$
 
-# In[ ]:
+# In[2]:
 
 y_hat = tf.constant(36, name='y_hat')            # Define y_hat constant. Set to 36.
 y = tf.constant(39, name='y')                    # Define y. Set to 39
@@ -77,7 +77,7 @@ with tf.Session() as session:                    # Create a session and print th
 # 
 # Now let us look at an easy example. Run the cell below:
 
-# In[ ]:
+# In[3]:
 
 a = tf.constant(2)
 b = tf.constant(10)
@@ -87,7 +87,7 @@ print(c)
 
 # As expected, you will not see 20! You got a tensor saying that the result is a tensor that does not have the shape attribute, and is of type "int32". All you did was put in the 'computation graph', but you have not run this computation yet. In order to actually multiply the two numbers, you will have to create a session and run it.
 
-# In[ ]:
+# In[4]:
 
 sess = tf.Session()
 print(sess.run(c))
@@ -98,7 +98,7 @@ print(sess.run(c))
 # Next, you'll also have to know about placeholders. A placeholder is an object whose value you can specify only later. 
 # To specify values for a placeholder, you can pass in values by using a "feed dictionary" (`feed_dict` variable). Below, we created a placeholder for x. This allows us to pass in a number later when we run the session. 
 
-# In[ ]:
+# In[5]:
 
 # Change the value of x in the feed_dict
 
@@ -126,7 +126,7 @@ sess.close()
 # - np.random.randn(...) to initialize randomly
 # 
 
-# In[ ]:
+# In[6]:
 
 # GRADED FUNCTION: linear_function
 
@@ -148,17 +148,17 @@ def linear_function():
     (Do not re-arrange the order).
     """
     ### START CODE HERE ### (4 lines of code)
-    X = None
-    W = None
-    b = None
-    Y = None
+    X = tf.constant(np.random.randn(3,1), name = "X")
+    W = tf.constant(np.random.randn(4,3), name = "W")
+    b = tf.constant(np.random.randn(4,1), name = "b")
+    Y = tf.add(tf.matmul(W, X),b)
     ### END CODE HERE ### 
     
     # Create the session using tf.Session() and run it with sess.run(...) on the variable you want to calculate
     
     ### START CODE HERE ###
-    sess = None
-    result = None
+    sess = tf.Session()
+    result = sess.run(Y)
     ### END CODE HERE ### 
     
     # close the session 
@@ -167,7 +167,7 @@ def linear_function():
     return result
 
 
-# In[ ]:
+# In[7]:
 
 print( "result = \n" + str(linear_function()))
 
@@ -212,7 +212,7 @@ print( "result = \n" + str(linear_function()))
 # ```
 # 
 
-# In[ ]:
+# In[8]:
 
 # GRADED FUNCTION: sigmoid
 
@@ -229,23 +229,24 @@ def sigmoid(z):
     
     ### START CODE HERE ### ( approx. 4 lines of code)
     # Create a placeholder for x. Name it 'x'.
-    x = None
+    x = tf.placeholder(tf.float32, name = "x")
 
     # compute sigmoid(x)
-    sigmoid = None
+    sigmoid = tf.sigmoid(x)
 
     # Create a session, and run it. Please use the method 2 explained above. 
     # You should use a feed_dict to pass z's value to x. 
-    None
-        # Run session and call the output "result"
-        result = None
-
+    with tf.Session() as sess: 
+        # run the variables initialization (if needed), run the operations
+        result = sess.run(sigmoid, feed_dict = {x: z})
+        # This takes care of closing the session for you :)
+    
     ### END CODE HERE ###
     
     return result
 
 
-# In[ ]:
+# In[9]:
 
 print ("sigmoid(0) = " + str(sigmoid(0)))
 print ("sigmoid(12) = " + str(sigmoid(12)))
