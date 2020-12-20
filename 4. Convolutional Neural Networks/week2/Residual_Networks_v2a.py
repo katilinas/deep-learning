@@ -26,7 +26,7 @@
 # 
 # Before jumping into the problem, let's run the cell below to load the required packages.
 
-# In[ ]:
+# In[1]:
 
 import numpy as np
 from keras import layers
@@ -122,7 +122,7 @@ K.set_learning_phase(1)
 # - For the activation, use:  `Activation('relu')(X)`
 # - To add the value passed forward by the shortcut: [Add](https://keras.io/layers/merge/#add)
 
-# In[ ]:
+# In[6]:
 
 # GRADED FUNCTION: identity_block
 
@@ -159,24 +159,24 @@ def identity_block(X, f, filters, stage, block):
     ### START CODE HERE ###
     
     # Second component of main path (≈3 lines)
-    X = None
-    X = None
-    X = None
+    X = Conv2D(filters = F2, kernel_size = (f,f), strides = (1,1), padding = 'same', name = conv_name_base + '2b', kernel_initializer = glorot_uniform(seed=0))(X)
+    X = BatchNormalization(axis = 3, name = bn_name_base + '2b')(X)
+    X = Activation('relu')(X)
 
     # Third component of main path (≈2 lines)
-    X = None
-    X = None
+    X = Conv2D(filters = F3, kernel_size = (1, 1), strides = (1,1), padding = 'valid', name = conv_name_base + '2c', kernel_initializer = glorot_uniform(seed=0))(X)
+    X = BatchNormalization(axis = 3, name = bn_name_base + '2c')(X)
 
     # Final step: Add shortcut value to main path, and pass it through a RELU activation (≈2 lines)
-    X = None
-    X = None
+    X = Add()([X,X_shortcut])
+    X = Activation('relu')(X)
     
     ### END CODE HERE ###
     
     return X
 
 
-# In[ ]:
+# In[7]:
 
 tf.reset_default_graph()
 
@@ -245,7 +245,7 @@ with tf.Session() as test:
 # - For the activation, use:  `Activation('relu')(X)`
 # - [Add](https://keras.io/layers/merge/#add)
 
-# In[1]:
+# In[8]:
 
 # GRADED FUNCTION: convolutional_block
 
@@ -278,35 +278,35 @@ def convolutional_block(X, f, filters, stage, block, s = 2):
 
     ##### MAIN PATH #####
     # First component of main path 
-    X = Conv2D(F1, (1, 1), strides = (s,s), name = conv_name_base + '2a', kernel_initializer = glorot_uniform(seed=0))(X)
+    X = Conv2D(F1, (1, 1), strides = (s,s), name = conv_name_base + '2a', padding = 'valid', kernel_initializer = glorot_uniform(seed=0))(X)
     X = BatchNormalization(axis = 3, name = bn_name_base + '2a')(X)
     X = Activation('relu')(X)
     
     ### START CODE HERE ###
 
     # Second component of main path (≈3 lines)
-    X = None
-    X = None
-    X = None
+    X = Conv2D(F2, (f, f), strides = (1,1), name = conv_name_base + '2b', padding = 'same', kernel_initializer = glorot_uniform(seed=0))(X)
+    X = BatchNormalization(axis = 3, name = bn_name_base + '2b')(X)
+    X = Activation('relu')(X)
 
     # Third component of main path (≈2 lines)
-    X = None
-    X = None
+    X = Conv2D(F3, (1, 1), strides = (1,1), name = conv_name_base + '2c', padding = 'valid', kernel_initializer = glorot_uniform(seed=0))(X)
+    X = BatchNormalization(axis = 3, name = bn_name_base + '2c')(X)
 
     ##### SHORTCUT PATH #### (≈2 lines)
-    X_shortcut = None
-    X_shortcut = None
+    X_shortcut = Conv2D(F3, (1, 1), strides = (s,s), name = conv_name_base + '1', padding = 'valid', kernel_initializer = glorot_uniform(seed=0))(X_shortcut)
+    X_shortcut = BatchNormalization(axis = 3, name = bn_name_base + '1')(X_shortcut)
 
     # Final step: Add shortcut value to main path, and pass it through a RELU activation (≈2 lines)
-    X = None
-    X = None
+    X = Add()([X,X_shortcut])
+    X = Activation('relu')(X)
     
     ### END CODE HERE ###
     
     return X
 
 
-# In[ ]:
+# In[9]:
 
 tf.reset_default_graph()
 
@@ -376,7 +376,7 @@ with tf.Session() as test:
 # - Fully connected layer: [See reference](https://keras.io/layers/core/#dense)
 # - Addition: [See reference](https://keras.io/layers/merge/#add)
 
-# In[ ]:
+# In[10]:
 
 # GRADED FUNCTION: ResNet50
 
@@ -415,26 +415,26 @@ def ResNet50(input_shape = (64, 64, 3), classes = 6):
     ### START CODE HERE ###
 
     # Stage 3 (≈4 lines)
-    X = None
-    X = None
-    X = None
-    X = None
+    X = convolutional_block(X, f = 3, filters = [128,128,512], stage = 3, block='a', s = 2)
+    X = identity_block(X, 3, [128,128,512], stage=3, block='b')
+    X = identity_block(X, 3, [128,128,512], stage=3, block='c')
+    X = identity_block(X, 3, [128,128,512], stage=3, block='d')
 
     # Stage 4 (≈6 lines)
-    X = None
-    X = None
-    X = None
-    X = None
-    X = None
-    X = None
+    X = convolutional_block(X, f = 3, filters = [256, 256, 1024], stage = 4, block='a', s = 2)
+    X = identity_block(X, 3, [256, 256, 1024], stage=4, block='b')
+    X = identity_block(X, 3, [256, 256, 1024], stage=4, block='c')
+    X = identity_block(X, 3, [256, 256, 1024], stage=4, block='d')
+    X = identity_block(X, 3, [256, 256, 1024], stage=4, block='e')
+    X = identity_block(X, 3, [256, 256, 1024], stage=4, block='f')
 
     # Stage 5 (≈3 lines)
-    X = None
-    X = None
-    X = None
+    X = convolutional_block(X, f = 3, filters = [512, 512, 2048], stage = 5, block='a', s = 2)
+    X = identity_block(X, 3, [512, 512, 2048], stage=5, block='b')
+    X = identity_block(X, 3, [512, 512, 2048], stage=5, block='c')
 
     # AVGPOOL (≈1 line). Use "X = AveragePooling2D(...)(X)"
-    X = None
+    X = AveragePooling2D((2,2), name='avg_pool')(X)
     
     ### END CODE HERE ###
 
@@ -451,14 +451,14 @@ def ResNet50(input_shape = (64, 64, 3), classes = 6):
 
 # Run the following code to build the model's graph. If your implementation is not correct you will know it by checking your accuracy when running `model.fit(...)` below.
 
-# In[ ]:
+# In[11]:
 
 model = ResNet50(input_shape = (64, 64, 3), classes = 6)
 
 
 # As seen in the Keras Tutorial Notebook, prior training a model, you need to configure the learning process by compiling the model.
 
-# In[ ]:
+# In[12]:
 
 model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
@@ -471,7 +471,7 @@ model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accur
 # <caption><center> <u> <font color='purple'> **Figure 6** </u><font color='purple'>  : **SIGNS dataset** </center></caption>
 # 
 
-# In[ ]:
+# In[13]:
 
 X_train_orig, Y_train_orig, X_test_orig, Y_test_orig, classes = load_dataset()
 
@@ -493,7 +493,7 @@ print ("Y_test shape: " + str(Y_test.shape))
 
 # Run the following cell to train your model on 2 epochs with a batch size of 32. On a CPU it should take you around 5min per epoch. 
 
-# In[ ]:
+# In[14]:
 
 model.fit(X_train, Y_train, epochs = 2, batch_size = 32)
 
@@ -522,7 +522,7 @@ model.fit(X_train, Y_train, epochs = 2, batch_size = 32)
 
 # Let's see how this model (trained on only two epochs) performs on the test set.
 
-# In[ ]:
+# In[15]:
 
 preds = model.evaluate(X_test, Y_test)
 print ("Loss = " + str(preds[0]))
@@ -549,12 +549,12 @@ print ("Test Accuracy = " + str(preds[1]))
 # 
 # Using a GPU, we've trained our own ResNet50 model's weights on the SIGNS dataset. You can load and run our trained model on the test set in the cells below. It may take ≈1min to load the model.
 
-# In[ ]:
+# In[3]:
 
 model = load_model('ResNet50.h5') 
 
 
-# In[ ]:
+# In[6]:
 
 preds = model.evaluate(X_test, Y_test)
 print ("Loss = " + str(preds[0]))
@@ -589,14 +589,14 @@ print(model.predict(x))
 
 # You can also print a summary of your model by running the following code.
 
-# In[ ]:
+# In[7]:
 
 model.summary()
 
 
 # Finally, run the code below to visualize your ResNet50. You can also download a .png picture of your model by going to "File -> Open...-> model.png".
 
-# In[ ]:
+# In[8]:
 
 plot_model(model, to_file='model.png')
 SVG(model_to_dot(model).create(prog='dot', format='svg'))
