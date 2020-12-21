@@ -34,7 +34,7 @@
 # ## Import libraries
 # Run the following cell to load the packages and dependencies that you will find useful as you build the object detector!
 
-# In[ ]:
+# In[1]:
 
 import argparse
 import os
@@ -196,7 +196,7 @@ get_ipython().magic('matplotlib inline')
 # 
 # **Reminder**: to call a Keras function, you should use `K.function(...)`.
 
-# In[ ]:
+# In[2]:
 
 # GRADED FUNCTION: yolo_filter_boxes
 
@@ -220,32 +220,32 @@ def yolo_filter_boxes(box_confidence, boxes, box_class_probs, threshold = .6):
     
     # Step 1: Compute box scores
     ### START CODE HERE ### (≈ 1 line)
-    box_scores = None
+    box_scores = box_confidence*box_class_probs
     ### END CODE HERE ###
     
     # Step 2: Find the box_classes using the max box_scores, keep track of the corresponding score
     ### START CODE HERE ### (≈ 2 lines)
-    box_classes = None
-    box_class_scores = None
+    box_classes = K.argmax(box_scores, axis=-1)
+    box_class_scores = K.max(box_scores, axis=-1)
     ### END CODE HERE ###
     
     # Step 3: Create a filtering mask based on "box_class_scores" by using "threshold". The mask should have the
     # same dimension as box_class_scores, and be True for the boxes you want to keep (with probability >= threshold)
     ### START CODE HERE ### (≈ 1 line)
-    filtering_mask = None
+    filtering_mask = (box_class_scores > threshold)
     ### END CODE HERE ###
     
     # Step 4: Apply the mask to box_class_scores, boxes and box_classes
     ### START CODE HERE ### (≈ 3 lines)
-    scores = None
-    boxes = None
-    classes = None
+    scores = tf.boolean_mask(box_class_scores,filtering_mask)
+    boxes = tf.boolean_mask(boxes,filtering_mask)
+    classes = tf.boolean_mask(box_classes,filtering_mask)
     ### END CODE HERE ###
     
     return scores, boxes, classes
 
 
-# In[ ]:
+# In[3]:
 
 with tf.Session() as test_a:
     box_confidence = tf.random_normal([19, 19, 5, 1], mean=1, stddev=4, seed = 1)
@@ -351,7 +351,7 @@ with tf.Session() as test_a:
 # - `inter_area` = You can use `max(height, 0)` and `max(width, 0)`
 # 
 
-# In[ ]:
+# In[4]:
 
 # GRADED FUNCTION: iou
 
@@ -369,31 +369,31 @@ def iou(box1, box2):
     
     # Calculate the (yi1, xi1, yi2, xi2) coordinates of the intersection of box1 and box2. Calculate its Area.
     ### START CODE HERE ### (≈ 7 lines)
-    xi1 = None
-    yi1 = None
-    xi2 = None
-    yi2 = None
-    inter_width = None
-    inter_height = None
-    inter_area = None
+    xi1 = max(box1_x1,box2_x1)
+    yi1 = max(box1_y1,box2_y1)
+    xi2 = min(box1_x2,box2_x2)
+    yi2 = min(box1_y2,box2_y2)
+    inter_width = xi2 - xi1
+    inter_height = yi2 - yi1
+    inter_area = max(inter_height, 0)*max(inter_width, 0)
     ### END CODE HERE ###    
 
     # Calculate the Union area by using Formula: Union(A,B) = A + B - Inter(A,B)
     ### START CODE HERE ### (≈ 3 lines)
-    box1_area = None
-    box2_area = None
-    union_area = None
+    box1_area = (box1_y2 - box1_y1)*(box1_x2 - box1_x1)
+    box2_area = (box2_y2 - box2_y1)*(box2_x2 - box2_x1)
+    union_area = box2_area+box1_area-inter_area
     ### END CODE HERE ###
     
     # compute the IoU
     ### START CODE HERE ### (≈ 1 line)
-    iou = None
+    iou = inter_area/union_area
     ### END CODE HERE ###
     
     return iou
 
 
-# In[ ]:
+# In[5]:
 
 ## Test case 1: boxes intersect
 box1 = (2, 1, 4, 3)
@@ -459,7 +459,7 @@ print("iou for boxes that only touch at edges = " + str(iou(box1,box2)))
 # )
 # ```
 
-# In[ ]:
+# In[6]:
 
 # GRADED FUNCTION: yolo_non_max_suppression
 
@@ -488,20 +488,21 @@ def yolo_non_max_suppression(scores, boxes, classes, max_boxes = 10, iou_thresho
     
     # Use tf.image.non_max_suppression() to get the list of indices corresponding to boxes you keep
     ### START CODE HERE ### (≈ 1 line)
-    nms_indices = None
+    nms_indices = tf.image.non_max_suppression(boxes, scores, max_boxes_tensor, iou_threshold)
+    print(nms_indices.shape)
     ### END CODE HERE ###
     
     # Use K.gather() to select only nms_indices from scores, boxes and classes
     ### START CODE HERE ### (≈ 3 lines)
-    scores = None
-    boxes = None
-    classes = None
+    scores = K.gather(scores, nms_indices)
+    boxes = K.gather(boxes, nms_indices)
+    classes = K.gather(classes, nms_indices)
     ### END CODE HERE ###
     
     return scores, boxes, classes
 
 
-# In[ ]:
+# In[7]:
 
 with tf.Session() as test_b:
     scores = tf.random_normal([54,], mean=1, stddev=4, seed = 1)
@@ -589,7 +590,7 @@ with tf.Session() as test_b:
 # 
 # Don't worry about these two functions; we'll show you where they need to be called.  
 
-# In[ ]:
+# In[8]:
 
 # GRADED FUNCTION: yolo_eval
 
@@ -617,27 +618,27 @@ def yolo_eval(yolo_outputs, image_shape = (720., 1280.), max_boxes=10, score_thr
     ### START CODE HERE ### 
     
     # Retrieve outputs of the YOLO model (≈1 line)
-    box_confidence, box_xy, box_wh, box_class_probs = None
+    box_confidence, box_xy, box_wh, box_class_probs = yolo_outputs
 
     # Convert boxes to be ready for filtering functions (convert boxes box_xy and box_wh to corner coordinates)
     boxes = yolo_boxes_to_corners(box_xy, box_wh)
 
     # Use one of the functions you've implemented to perform Score-filtering with a threshold of score_threshold (≈1 line)
-    scores, boxes, classes = None
+    scores, boxes, classes = yolo_filter_boxes(box_confidence, boxes, box_class_probs, score_threshold)
     
     # Scale boxes back to original image shape.
     boxes = scale_boxes(boxes, image_shape)
 
     # Use one of the functions you've implemented to perform Non-max suppression with 
     # maximum number of boxes set to max_boxes and a threshold of iou_threshold (≈1 line)
-    scores, boxes, classes = None
+    scores, boxes, classes = yolo_non_max_suppression(scores, boxes, classes, max_boxes, iou_threshold)
     
     ### END CODE HERE ###
     
     return scores, boxes, classes
 
 
-# In[ ]:
+# In[9]:
 
 with tf.Session() as test_b:
     yolo_outputs = (tf.random_normal([19, 19, 5, 1], mean=1, stddev=4, seed = 1),
@@ -725,7 +726,7 @@ with tf.Session() as test_b:
 
 # In this part, you are going to use a pre-trained model and test it on the car detection dataset.  We'll need a session to execute the computation graph and evaluate the tensors.
 
-# In[ ]:
+# In[10]:
 
 sess = K.get_session()
 
@@ -737,10 +738,12 @@ sess = K.get_session()
 # * We'll read class names and anchors from text files.
 # * The car detection dataset has 720x1280 images, which we've pre-processed into 608x608 images. 
 
-# In[ ]:
+# In[11]:
 
 class_names = read_classes("model_data/coco_classes.txt")
 anchors = read_anchors("model_data/yolo_anchors.txt")
+print(class_names)
+print(anchors)
 image_shape = (720., 1280.)    
 
 
@@ -752,14 +755,14 @@ image_shape = (720., 1280.)
 # 
 # Run the cell below to load the model from this file.
 
-# In[ ]:
+# In[12]:
 
 yolo_model = load_model("model_data/yolo.h5")
 
 
 # This loads the weights of a trained YOLO model. Here's a summary of the layers your model contains.
 
-# In[ ]:
+# In[13]:
 
 yolo_model.summary()
 
@@ -774,7 +777,7 @@ yolo_model.summary()
 # 
 # If you are curious about how `yolo_head` is implemented, you can find the function definition in the file ['keras_yolo.py'](https://github.com/allanzelener/YAD2K/blob/master/yad2k/models/keras_yolo.py).  The file is located in your workspace in this path 'yad2k/models/keras_yolo.py'.
 
-# In[ ]:
+# In[14]:
 
 yolo_outputs = yolo_head(yolo_model.output, anchors, len(class_names))
 
@@ -785,7 +788,7 @@ yolo_outputs = yolo_head(yolo_model.output, anchors, len(class_names))
 # 
 # `yolo_outputs` gave you all the predicted boxes of `yolo_model` in the correct format. You're now ready to perform filtering and select only the best boxes. Let's now call `yolo_eval`, which you had previously implemented, to do this. 
 
-# In[ ]:
+# In[15]:
 
 scores, boxes, classes = yolo_eval(yolo_outputs, image_shape)
 
@@ -822,7 +825,7 @@ scores, boxes, classes = yolo_eval(yolo_outputs, image_shape)
 # ```
 # * Notice that the variables `scores, boxes, classes` are not passed into the `predict` function, but these are global variables that you will use within the `predict` function.
 
-# In[ ]:
+# In[18]:
 
 def predict(sess, image_file):
     """
@@ -846,7 +849,7 @@ def predict(sess, image_file):
     # Run the session with the correct tensors and choose the correct placeholders in the feed_dict.
     # You'll need to use feed_dict={yolo_model.input: ... , K.learning_phase(): 0})
     ### START CODE HERE ### (≈ 1 line)
-    out_scores, out_boxes, out_classes = None
+    out_scores, out_boxes, out_classes = sess.run([scores, boxes, classes], feed_dict={yolo_model.input: image_data, K.learning_phase():0})
     ### END CODE HERE ###
 
     # Print predictions info
@@ -866,7 +869,7 @@ def predict(sess, image_file):
 
 # Run the following cell on the "test.jpg" image to verify that your function is correct.
 
-# In[ ]:
+# In[19]:
 
 out_scores, out_boxes, out_classes = predict(sess, "test.jpg")
 
