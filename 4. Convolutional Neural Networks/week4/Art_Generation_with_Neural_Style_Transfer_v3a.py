@@ -26,7 +26,7 @@
 # * Grammar and wording updates for clarity.
 # * `model_nn`: added hints.
 
-# In[ ]:
+# In[1]:
 
 import os
 import sys
@@ -61,7 +61,7 @@ get_ipython().magic('matplotlib inline')
 # 
 # Run the following code to load parameters from the VGG model. This may take a few seconds. 
 
-# In[ ]:
+# In[2]:
 
 pp = pprint.PrettyPrinter(indent=4)
 model = load_vgg_model("pretrained-model/imagenet-vgg-verydeep-19.mat")
@@ -97,7 +97,7 @@ pp.pprint(model)
 # 
 # In our running example, the content image C will be the picture of the Louvre Museum in Paris. Run the code below to see a picture of the Louvre.
 
-# In[ ]:
+# In[3]:
 
 content_image = scipy.misc.imread("images/louvre.jpg")
 imshow(content_image);
@@ -158,7 +158,7 @@ imshow(content_image);
 # * Notice that it's not necessary to use tf.transpose to 'unroll' the tensors in this case but this is a useful function to practice and understand for other situations that you'll encounter.
 # 
 
-# In[ ]:
+# In[4]:
 
 # GRADED FUNCTION: compute_content_cost
 
@@ -176,20 +176,20 @@ def compute_content_cost(a_C, a_G):
     
     ### START CODE HERE ###
     # Retrieve dimensions from a_G (≈1 line)
-    m, n_H, n_W, n_C = None
+    m, n_H, n_W, n_C = a_G.get_shape().as_list()
     
     # Reshape a_C and a_G (≈2 lines)
-    a_C_unrolled = None
-    a_G_unrolled = None
+    a_C_unrolled = tf.transpose(tf.reshape(a_C,[n_H*n_W, n_C]))
+    a_G_unrolled = tf.transpose(tf.reshape(a_G, [n_H*n_W, n_C]))
     
     # compute the cost with tensorflow (≈1 line)
-    J_content = None
+    J_content = (1/(4*n_H*n_W*n_C))*tf.reduce_sum(tf.square(tf.subtract(a_C_unrolled,a_G_unrolled)))
     ### END CODE HERE ###
     
     return J_content
 
 
-# In[ ]:
+# In[5]:
 
 tf.reset_default_graph()
 
@@ -223,7 +223,7 @@ with tf.Session() as test:
 # 
 # For our running example, we will use the following style image: 
 
-# In[ ]:
+# In[6]:
 
 style_image = scipy.misc.imread("images/monet_800600.jpg")
 imshow(style_image);
@@ -270,7 +270,7 @@ imshow(style_image);
 # * The formula is: The gram matrix of A is $G_A = AA^T$. 
 # * You may use these functions: [matmul](https://www.tensorflow.org/api_docs/python/tf/matmul) and [transpose](https://www.tensorflow.org/api_docs/python/tf/transpose).
 
-# In[ ]:
+# In[11]:
 
 # GRADED FUNCTION: gram_matrix
 
@@ -284,13 +284,13 @@ def gram_matrix(A):
     """
     
     ### START CODE HERE ### (≈1 line)
-    GA = None
+    GA = tf.matmul(A,tf.transpose(A))
     ### END CODE HERE ###
     
     return GA
 
 
-# In[ ]:
+# In[12]:
 
 tf.reset_default_graph()
 
@@ -347,7 +347,7 @@ with tf.Session() as test:
 # * Since the activation dimensions are $(m, n_H, n_W, n_C)$ whereas the desired unrolled matrix shape is $(n_C, n_H*n_W)$, the order of the filter dimension $n_C$ is changed.  So `tf.transpose` can be used to change the order of the filter dimension.
 # * for the product $\mathbf{G}_{gram} = \mathbf{A}_{} \mathbf{A}_{}^T$, you will also need to specify the `perm` parameter for the `tf.transpose` function.
 
-# In[ ]:
+# In[15]:
 
 # GRADED FUNCTION: compute_layer_style_cost
 
@@ -363,25 +363,25 @@ def compute_layer_style_cost(a_S, a_G):
     
     ### START CODE HERE ###
     # Retrieve dimensions from a_G (≈1 line)
-    m, n_H, n_W, n_C = None
+    m, n_H, n_W, n_C = a_G.get_shape().as_list()
     
     # Reshape the images to have them of shape (n_C, n_H*n_W) (≈2 lines)
-    a_S = None
-    a_G = None
+    a_S = tf.transpose(tf.reshape(a_S,[n_H*n_W, n_C]))
+    a_G = tf.transpose(tf.reshape(a_G,[n_H*n_W, n_C]))
 
     # Computing gram_matrices for both images S and G (≈2 lines)
-    GS = None
-    GG = None
+    GS = gram_matrix(a_S)
+    GG = gram_matrix(a_G)
 
     # Computing the loss (≈1 line)
-    J_style_layer = None
+    J_style_layer = (1/(4*(n_H*n_W*n_C)*(n_H*n_W*n_C)))*tf.reduce_sum(tf.square(tf.subtract(GS,GG)))
     
     ### END CODE HERE ###
     
     return J_style_layer
 
 
-# In[ ]:
+# In[16]:
 
 tf.reset_default_graph()
 
@@ -416,7 +416,7 @@ with tf.Session() as test:
 # * After completing this exercise, feel free to come back and experiment with different weights to see how it changes the generated image $G$.
 # * By default, we'll give each layer equal weight, and the weights add up to 1.  ($\sum_{l}^L\lambda^{[l]} = 1$)
 
-# In[ ]:
+# In[27]:
 
 STYLE_LAYERS = [
     ('conv1_1', 0.2),
@@ -450,7 +450,7 @@ STYLE_LAYERS = [
 # Once you're done with the loop:  
 # * Return the overall style cost.
 
-# In[ ]:
+# In[17]:
 
 def compute_style_cost(model, STYLE_LAYERS):
     """
@@ -515,7 +515,7 @@ def compute_style_cost(model, STYLE_LAYERS):
 # 
 # **Exercise**: Implement the total cost function which includes both the content cost and the style cost. 
 
-# In[ ]:
+# In[18]:
 
 # GRADED FUNCTION: total_cost
 
@@ -534,13 +534,13 @@ def total_cost(J_content, J_style, alpha = 10, beta = 40):
     """
     
     ### START CODE HERE ### (≈1 line)
-    J = None
+    J = alpha*J_content+beta*J_style
     ### END CODE HERE ###
     
     return J
 
 
-# In[ ]:
+# In[19]:
 
 tf.reset_default_graph()
 
@@ -601,7 +601,7 @@ with tf.Session() as test:
 # 
 # #### Start the interactive session.
 
-# In[ ]:
+# In[20]:
 
 # Reset the graph
 tf.reset_default_graph()
@@ -613,7 +613,7 @@ sess = tf.InteractiveSession()
 # #### Content image
 # Let's load, reshape, and normalize our "content" image (the Louvre museum picture):
 
-# In[ ]:
+# In[21]:
 
 content_image = scipy.misc.imread("images/louvre_small.jpg")
 content_image = reshape_and_normalize_image(content_image)
@@ -622,7 +622,7 @@ content_image = reshape_and_normalize_image(content_image)
 # #### Style image
 # Let's load, reshape and normalize our "style" image (Claude Monet's painting):
 
-# In[ ]:
+# In[22]:
 
 style_image = scipy.misc.imread("images/monet.jpg")
 style_image = reshape_and_normalize_image(style_image)
@@ -635,7 +635,7 @@ style_image = reshape_and_normalize_image(style_image)
 # * By initializing the pixels of the generated image to be mostly noise but slightly correlated with the content image, this will help the content of the "generated" image more rapidly match the content of the "content" image. 
 # * Feel free to look in `nst_utils.py` to see the details of `generate_noise_image(...)`; to do so, click "File-->Open..." at the upper-left corner of this Jupyter notebook.
 
-# In[ ]:
+# In[23]:
 
 generated_image = generate_noise_image(content_image)
 imshow(generated_image[0]);
@@ -644,7 +644,7 @@ imshow(generated_image[0]);
 # #### Load pre-trained VGG19 model
 # Next, as explained in part (2), let's load the VGG19 model.
 
-# In[ ]:
+# In[24]:
 
 model = load_vgg_model("pretrained-model/imagenet-vgg-verydeep-19.mat")
 
@@ -660,7 +660,7 @@ model = load_vgg_model("pretrained-model/imagenet-vgg-verydeep-19.mat")
 # 
 # **Note**: At this point, a_G is a tensor and hasn't been evaluated. It will be evaluated and updated at each iteration when we run the Tensorflow graph in model_nn() below.
 
-# In[ ]:
+# In[25]:
 
 # Assign the content image to be the input of the VGG model.  
 sess.run(model['input'].assign(content_image))
@@ -682,7 +682,7 @@ J_content = compute_content_cost(a_C, a_G)
 
 # #### Style cost
 
-# In[ ]:
+# In[28]:
 
 # Assign the input of the model to be the "style" image 
 sess.run(model['input'].assign(style_image))
@@ -695,10 +695,10 @@ J_style = compute_style_cost(model, STYLE_LAYERS)
 # * Now that you have J_content and J_style, compute the total cost J by calling `total_cost()`. 
 # * Use `alpha = 10` and `beta = 40`.
 
-# In[ ]:
+# In[29]:
 
 ### START CODE HERE ### (1 line)
-J = None
+J = total_cost(J_content,J_style)
 ### END CODE HERE ###
 
 
@@ -708,7 +708,7 @@ J = None
 # * Use a learning rate of 2.0.  
 # * [Adam Optimizer documentation](https://www.tensorflow.org/api_docs/python/tf/train/AdamOptimizer)
 
-# In[ ]:
+# In[30]:
 
 # define optimizer (1 line)
 optimizer = tf.train.AdamOptimizer(2.0)
@@ -736,30 +736,30 @@ train_step = optimizer.minimize(J)
 # ```
 # 
 
-# In[ ]:
+# In[39]:
 
 def model_nn(sess, input_image, num_iterations = 200):
     
     # Initialize global variables (you need to run the session on the initializer)
     ### START CODE HERE ### (1 line)
-    None
+    sess.run(tf.global_variables_initializer())
     ### END CODE HERE ###
     
     # Run the noisy input image (initial generated image) through the model. Use assign().
     ### START CODE HERE ### (1 line)
-    None
+    model["input"].assign(input_image)
     ### END CODE HERE ###
     
     for i in range(num_iterations):
     
         # Run the session on the train_step to minimize the total cost
         ### START CODE HERE ### (1 line)
-        None
+        sess.run(train_step)
         ### END CODE HERE ###
         
         # Compute the generated image by running the session on the current model['input']
         ### START CODE HERE ### (1 line)
-        generated_image = None
+        generated_image = sess.run(model["input"])
         ### END CODE HERE ###
 
         # Print every 20 iteration.
