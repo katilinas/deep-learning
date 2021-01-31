@@ -78,7 +78,7 @@ words, word_to_vec_map = read_glove_vecs('../../readonly/glove.6B.50d.txt')
 # #### Additional Hints
 # * You may find `np.dot`, `np.sum`, or `np.sqrt` useful depending upon the implementation that you choose.
 
-# In[ ]:
+# In[5]:
 
 # GRADED FUNCTION: cosine_similarity
 
@@ -98,20 +98,19 @@ def cosine_similarity(u, v):
     
     ### START CODE HERE ###
     # Compute the dot product between u and v (≈1 line)
-    dot = None
+    dot = np.dot(u, v)
     # Compute the L2 norm of u (≈1 line)
-    norm_u = None
-    
+    norm_u = np.sqrt(np.sum(np.square(u)))
     # Compute the L2 norm of v (≈1 line)
-    norm_v = None
+    norm_v = np.sqrt(np.sum(np.square(v)))
     # Compute the cosine similarity defined by formula (1) (≈1 line)
-    cosine_similarity = None
+    cosine_similarity = dot/(norm_u*norm_v)
     ### END CODE HERE ###
     
     return cosine_similarity
 
 
-# In[ ]:
+# In[6]:
 
 father = word_to_vec_map["father"]
 mother = word_to_vec_map["mother"]
@@ -174,7 +173,7 @@ print("cosine_similarity(france - paris, rome - italy) = ",cosine_similarity(fra
 # 
 # **Exercise**: Complete the code below to be able to perform word analogies!
 
-# In[ ]:
+# In[7]:
 
 # GRADED FUNCTION: complete_analogy
 
@@ -197,7 +196,9 @@ def complete_analogy(word_a, word_b, word_c, word_to_vec_map):
     
     ### START CODE HERE ###
     # Get the word embeddings e_a, e_b and e_c (≈1-3 lines)
-    e_a, e_b, e_c = None
+    e_a = word_to_vec_map[word_a]
+    e_b = word_to_vec_map[word_b]
+    e_c = word_to_vec_map[word_c]
     ### END CODE HERE ###
     
     words = word_to_vec_map.keys()
@@ -217,13 +218,13 @@ def complete_analogy(word_a, word_b, word_c, word_to_vec_map):
         
         ### START CODE HERE ###
         # Compute cosine similarity between the vector (e_b - e_a) and the vector ((w's vector representation) - e_c)  (≈1 line)
-        cosine_sim = None
+        cosine_sim = cosine_similarity(e_b - e_a, word_to_vec_map[w] - e_c)
         
         # If the cosine_sim is more than the max_cosine_sim seen so far,
             # then: set the new max_cosine_sim to the current cosine_sim and the best_word to the current word (≈3 lines)
-        if None > None:
-            max_cosine_sim = None
-            best_word = None
+        if cosine_sim > max_cosine_sim:
+            max_cosine_sim = cosine_sim
+            best_word = w
         ### END CODE HERE ###
         
     return best_word
@@ -231,9 +232,9 @@ def complete_analogy(word_a, word_b, word_c, word_to_vec_map):
 
 # Run the cell below to test your code, this may take 1-2 minutes.
 
-# In[ ]:
+# In[9]:
 
-triads_to_try = [('italy', 'italian', 'spain'), ('india', 'delhi', 'japan'), ('man', 'woman', 'boy'), ('small', 'smaller', 'large')]
+triads_to_try = [('italy', 'italian', 'spain'), ('india', 'delhi', 'japan'), ('man', 'woman', 'boy'), ('small', 'smaller', 'big')]
 for triad in triads_to_try:
     print ('{} -> {} :: {} -> {}'.format( *triad, complete_analogy(*triad,word_to_vec_map)))
 
