@@ -51,7 +51,7 @@
 
 # Let's get started! Run the following cell to load the package you are going to use. 
 
-# In[ ]:
+# In[1]:
 
 import numpy as np
 from emo_utils import *
@@ -76,13 +76,13 @@ get_ipython().magic('matplotlib inline')
 # 
 # Let's load the dataset using the code below. We split the dataset between training (127 examples) and testing (56 examples).
 
-# In[ ]:
+# In[2]:
 
 X_train, Y_train = read_csv('data/train_emoji.csv')
 X_test, Y_test = read_csv('data/tesss.csv')
 
 
-# In[ ]:
+# In[3]:
 
 maxLen = len(max(X_train, key=len).split())
 
@@ -91,7 +91,7 @@ maxLen = len(max(X_train, key=len).split())
 # * Change `idx` to see different examples. 
 # * Note that due to the font used by iPython notebook, the heart emoji may be colored black rather than red.
 
-# In[ ]:
+# In[4]:
 
 for idx in range(10):
     print(X_train[idx], label_to_emoji(Y_train[idx]))
@@ -117,7 +117,7 @@ for idx in range(10):
 #     * Each row is a one-hot vector giving the label of one example.
 #     * Here, `Y_oh` stands for "Y-one-hot" in the variable names `Y_oh_train` and `Y_oh_test`: 
 
-# In[ ]:
+# In[5]:
 
 Y_oh_train = convert_to_one_hot(Y_train, C = 5)
 Y_oh_test = convert_to_one_hot(Y_test, C = 5)
@@ -125,7 +125,7 @@ Y_oh_test = convert_to_one_hot(Y_test, C = 5)
 
 # Let's see what `convert_to_one_hot()` did. Feel free to change `index` to print out different values. 
 
-# In[ ]:
+# In[6]:
 
 idx = 50
 print(f"Sentence '{X_train[50]}' has label index {Y_train[idx]}, which is emoji {label_to_emoji(Y_train[idx])}", )
@@ -143,7 +143,7 @@ print(f"Label index {Y_train[idx]} in one-hot encoding format is {Y_oh_train[idx
 # 
 # Run the following cell to load the `word_to_vec_map`, which contains all the vector representations.
 
-# In[ ]:
+# In[7]:
 
 word_to_index, index_to_word, word_to_vec_map = read_glove_vecs('../../readonly/glove.6B.50d.txt')
 
@@ -156,12 +156,13 @@ word_to_index, index_to_word, word_to_vec_map = read_glove_vecs('../../readonly/
 # 
 # Run the following cell to check if it works.
 
-# In[ ]:
+# In[8]:
 
 word = "cucumber"
-idx = 289846
+idx = 113317
 print("the index of", word, "in the vocabulary is", word_to_index[word])
 print("the", str(idx) + "th word in the vocabulary is", index_to_word[idx])
+print(word_to_vec_map[word].shape)
 
 
 # **Exercise**: Implement `sentence_to_avg()`. You will need to carry out two steps:
@@ -178,7 +179,7 @@ print("the", str(idx) + "th word in the vocabulary is", index_to_word[idx])
 #     * Be careful not to hard code the word that you access.  In other words, don't assume that if you see the word 'the' in the `word_to_vec_map` within this notebook, that this word will be in the `word_to_vec_map` when the function is being called by the automatic grader.
 #     * Hint: you can use any one of the word vectors that you retrieved from the input `sentence` to find the shape of a word vector.
 
-# In[ ]:
+# In[9]:
 
 # GRADED FUNCTION: sentence_to_avg
 
@@ -197,23 +198,24 @@ def sentence_to_avg(sentence, word_to_vec_map):
     
     ### START CODE HERE ###
     # Step 1: Split sentence into list of lower case words (≈ 1 line)
-    words = None
+    words = sentence.lower().split()
 
     # Initialize the average word vector, should have the same shape as your word vectors.
-    avg = None
-    
+    avg = np.zeros(word_to_vec_map[words[0]].shape)
+
     # Step 2: average the word vectors. You can loop over the words in the list "words".
     total = 0
-    for w in None:
-        total += None
-    avg = None
+    for w in words:
+        total += 1
+        avg = avg + word_to_vec_map[w]
+    avg = avg/total
     
     ### END CODE HERE ###
     
     return avg
 
 
-# In[ ]:
+# In[10]:
 
 avg = sentence_to_avg("Morrocan couscous is my favorite dish", word_to_vec_map)
 print("avg = \n", avg)
@@ -257,7 +259,7 @@ print("avg = \n", avg)
 # 
 # We provided the function `softmax()`, which was imported earlier.
 
-# In[ ]:
+# In[11]:
 
 # GRADED FUNCTION: model
 
@@ -298,14 +300,14 @@ def model(X, Y, word_to_vec_map, learning_rate = 0.01, num_iterations = 400):
             
             ### START CODE HERE ### (≈ 4 lines of code)
             # Average the word vectors of the words from the i'th training example
-            avg = None
+            avg = sentence_to_avg(X[i], word_to_vec_map)
 
             # Forward propagate the avg through the softmax layer
-            z = None
-            a = None
+            z = np.dot(W, avg) + b
+            a = softmax(z)
 
             # Compute cost using the i'th training label's one hot representation and "A" (the output of the softmax)
-            cost = None
+            cost = -np.squeeze(np.sum(Y_oh[i] * np.log(a)))
             ### END CODE HERE ###
             
             # Compute gradients 
@@ -324,7 +326,7 @@ def model(X, Y, word_to_vec_map, learning_rate = 0.01, num_iterations = 400):
     return pred, W, b
 
 
-# In[ ]:
+# In[12]:
 
 print(X_train.shape)
 print(Y_train.shape)
@@ -351,7 +353,7 @@ print(type(X_train))
 
 # Run the next cell to train your model and learn the softmax parameters (W,b). 
 
-# In[ ]:
+# In[13]:
 
 pred, W, b = model(X_train, Y_train, word_to_vec_map)
 print(pred)
@@ -416,7 +418,7 @@ print(pred)
 # 
 # * Note that the `predict` function used here is defined in emo_util.spy.
 
-# In[ ]:
+# In[14]:
 
 print("Training set:")
 pred_train = predict(X_train, Y_train, W, b, word_to_vec_map)
@@ -459,7 +461,7 @@ pred_test = predict(X_test, Y_test, W, b, word_to_vec_map)
 # 
 # 
 
-# In[ ]:
+# In[15]:
 
 X_my_sentences = np.array(["i adore you", "i love you", "funny lol", "lets play with a ball", "food is ready", "not feeling happy"])
 Y_my_labels = np.array([[0], [0], [2], [1], [4],[3]])
@@ -484,7 +486,7 @@ print_predictions(X_my_sentences, pred)
 # * Printing the confusion matrix can also help understand which classes are more difficult for your model. 
 # * A confusion matrix shows how often an example whose label is one class ("actual" class) is mislabeled by the algorithm with a different class ("predicted" class).
 
-# In[ ]:
+# In[16]:
 
 print(Y_test.shape)
 print('           '+ label_to_emoji(0)+ '    ' + label_to_emoji(1) + '    ' +  label_to_emoji(2)+ '    ' + label_to_emoji(3)+'   ' + label_to_emoji(4))
@@ -512,7 +514,7 @@ plot_confusion_matrix(Y_test, pred_test)
 # 
 # Run the following cell to load the Keras packages.
 
-# In[ ]:
+# In[17]:
 
 import numpy as np
 np.random.seed(0)
@@ -594,13 +596,13 @@ np.random.seed(1)
 # ##### Additional Hints
 # * Note that you may have considered using the `enumerate()` function in the for loop, but for the purposes of passing the autograder, please follow the starter code by initializing and incrementing `j` explicitly.
 
-# In[ ]:
+# In[18]:
 
 for idx, val in enumerate(["I", "like", "learning"]):
     print(idx,val)
 
 
-# In[ ]:
+# In[31]:
 
 # GRADED FUNCTION: sentences_to_indices
 
@@ -622,22 +624,22 @@ def sentences_to_indices(X, word_to_index, max_len):
     
     ### START CODE HERE ###
     # Initialize X_indices as a numpy matrix of zeros and the correct shape (≈ 1 line)
-    X_indices = None
+    X_indices = np.zeros((m, max_len))
     
     for i in range(m):                               # loop over training examples
         
         # Convert the ith training sentence in lower case and split is into words. You should get a list of words.
-        sentence_words =None
+        sentence_words = X[i].lower().split()
         
         # Initialize j to 0
-        j = None
+        j = 0
         
         # Loop over the words of sentence_words
-        for w in None:
+        for w in sentence_words:
             # Set the (i,j)th entry of X_indices to the index of the correct word.
-            X_indices[i, j] = None
+            X_indices[i, j] = word_to_index[w]
             # Increment j to j + 1
-            j = None
+            j = j+1
             
     ### END CODE HERE ###
     
@@ -646,7 +648,7 @@ def sentences_to_indices(X, word_to_index, max_len):
 
 # Run the following cell to check what `sentences_to_indices()` does, and check your results.
 
-# In[ ]:
+# In[32]:
 
 X1 = np.array(["funny lol", "lets play baseball", "food is ready for you"])
 X1_indices = sentences_to_indices(X1,word_to_index, max_len = 5)
@@ -692,7 +694,7 @@ print("X1_indices =\n", X1_indices)
 # 4. Set the embedding weights to be equal to the embedding matrix.
 #     * Note that this is part of the code is already completed for you and does not need to be modified. 
 
-# In[ ]:
+# In[33]:
 
 # GRADED FUNCTION: pretrained_embedding_layer
 
@@ -715,18 +717,18 @@ def pretrained_embedding_layer(word_to_vec_map, word_to_index):
     # Step 1
     # Initialize the embedding matrix as a numpy array of zeros.
     # See instructions above to choose the correct shape.
-    emb_matrix = None
+    emb_matrix = np.zeros((vocab_len, emb_dim))
     
     # Step 2
     # Set each row "idx" of the embedding matrix to be 
     # the word vector representation of the idx'th word of the vocabulary
     for word, idx in word_to_index.items():
-        emb_matrix[idx, :] = None
+        emb_matrix[idx, :] = word_to_vec_map[word]
 
     # Step 3
     # Define Keras embedding layer with the correct input and output sizes
     # Make it non-trainable.
-    embedding_layer = None
+    embedding_layer = Embedding(vocab_len, emb_dim, trainable=False)
     ### END CODE HERE ###
 
     # Step 4 (already done for you; please do not modify)
@@ -739,7 +741,7 @@ def pretrained_embedding_layer(word_to_vec_map, word_to_index):
     return embedding_layer
 
 
-# In[ ]:
+# In[34]:
 
 embedding_layer = pretrained_embedding_layer(word_to_vec_map, word_to_index)
 print("weights[0][1][3] =", embedding_layer.get_weights()[0][1][3])
@@ -810,7 +812,7 @@ print("weights[0][1][3] =", embedding_layer.get_weights()[0][1][3])
 # 
 # 
 
-# In[ ]:
+# In[35]:
 
 # GRADED FUNCTION: Emojify_V2
 
@@ -830,32 +832,32 @@ def Emojify_V2(input_shape, word_to_vec_map, word_to_index):
     ### START CODE HERE ###
     # Define sentence_indices as the input of the graph.
     # It should be of shape input_shape and dtype 'int32' (as it contains indices, which are integers).
-    sentence_indices = None
+    sentence_indices = Input(shape=input_shape, dtype='int32')
     
     # Create the embedding layer pretrained with GloVe Vectors (≈1 line)
-    embedding_layer = None
+    embedding_layer =  pretrained_embedding_layer(word_to_vec_map, word_to_index)
     
     # Propagate sentence_indices through your embedding layer
     # (See additional hints in the instructions).
-    embeddings = None   
+    embeddings = embedding_layer(sentence_indices)   
     
     # Propagate the embeddings through an LSTM layer with 128-dimensional hidden state
     # The returned output should be a batch of sequences.
-    X = None
+    X = LSTM(128, return_sequences=True)(embeddings)
     # Add dropout with a probability of 0.5
-    X = None
+    X = Dropout(0.5)(X)
     # Propagate X trough another LSTM layer with 128-dimensional hidden state
     # The returned output should be a single hidden state, not a batch of sequences.
-    X = None
+    X = LSTM(128, return_sequences=False)(X)
     # Add dropout with a probability of 0.5
-    X = None
+    X = Dropout(0.5)(X)
     # Propagate X through a Dense layer with 5 units
-    X = None
+    X = Dense(5, activation=None)(X)
     # Add a softmax activation
-    X = None
+    X = Activation('softmax')(X)
     
     # Create Model instance which converts sentence_indices into X.
-    model = None
+    model = Model(inputs=[sentence_indices], outputs=X)
     
     ### END CODE HERE ###
     
@@ -864,7 +866,7 @@ def Emojify_V2(input_shape, word_to_vec_map, word_to_index):
 
 # Run the following cell to create your model and check its summary. Because all sentences in the dataset are less than 10 words, we chose `max_len = 10`.  You should see your architecture, it uses "20,223,927" parameters, of which 20,000,050 (the word embeddings) are non-trainable, and the remaining 223,877 are. Because our vocabulary size has 400,001 words (with valid indices from 0 to 400,000) there are 400,001\*50 = 20,000,050 non-trainable parameters. 
 
-# In[ ]:
+# In[36]:
 
 model = Emojify_V2((maxLen,), word_to_vec_map, word_to_index)
 model.summary()
@@ -872,14 +874,14 @@ model.summary()
 
 # As usual, after creating your model in Keras, you need to compile it and define what loss, optimizer and metrics your are want to use. Compile your model using `categorical_crossentropy` loss, `adam` optimizer and `['accuracy']` metrics:
 
-# In[ ]:
+# In[37]:
 
 model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
 
 # It's time to train your model. Your Emojifier-V2 `model` takes as input an array of shape (`m`, `max_len`) and outputs probability vectors of shape (`m`, `number of classes`). We thus have to convert X_train (array of sentences as strings) to X_train_indices (array of sentences as list of word indices), and Y_train (labels as indices) to Y_train_oh (labels as one-hot vectors).
 
-# In[ ]:
+# In[38]:
 
 X_train_indices = sentences_to_indices(X_train, word_to_index, maxLen)
 Y_train_oh = convert_to_one_hot(Y_train, C = 5)
@@ -887,14 +889,14 @@ Y_train_oh = convert_to_one_hot(Y_train, C = 5)
 
 # Fit the Keras model on `X_train_indices` and `Y_train_oh`. We will use `epochs = 50` and `batch_size = 32`.
 
-# In[ ]:
+# In[39]:
 
 model.fit(X_train_indices, Y_train_oh, epochs = 50, batch_size = 32, shuffle=True)
 
 
 # Your model should perform around **90% to 100% accuracy** on the training set. The exact accuracy you get may be a little different. Run the following cell to evaluate your model on the test set. 
 
-# In[ ]:
+# In[40]:
 
 X_test_indices = sentences_to_indices(X_test, word_to_index, max_len = maxLen)
 Y_test_oh = convert_to_one_hot(Y_test, C = 5)
@@ -905,7 +907,7 @@ print("Test accuracy = ", acc)
 
 # You should get a test accuracy between 80% and 95%. Run the cell below to see the mislabelled examples. 
 
-# In[ ]:
+# In[41]:
 
 # This code allows you to see the mislabelled examples
 C = 5
@@ -921,7 +923,7 @@ for i in range(len(X_test)):
 
 # Now you can try it on your own example. Write your own sentence below. 
 
-# In[ ]:
+# In[42]:
 
 # Change the sentence below to see your prediction. Make sure all the words are in the Glove embeddings.  
 x_test = np.array(['not feeling happy'])
