@@ -43,7 +43,7 @@
 
 # Let's load all the packages you will need for this assignment.
 
-# In[ ]:
+# In[1]:
 
 from keras.layers import Bidirectional, Concatenate, Permute, Dot, Input, LSTM, Multiply
 from keras.layers import RepeatVector, Dense, Activation, Lambda
@@ -78,13 +78,13 @@ get_ipython().magic('matplotlib inline')
 # 
 # We will train the model on a dataset of 10,000 human readable dates and their equivalent, standardized, machine readable dates. Let's run the following cells to load the dataset and print some examples. 
 
-# In[ ]:
+# In[2]:
 
 m = 10000
 dataset, human_vocab, machine_vocab, inv_machine_vocab = load_dataset(m)
 
 
-# In[ ]:
+# In[3]:
 
 dataset[:10]
 
@@ -103,7 +103,7 @@ dataset[:10]
 # - We will set Ty=10
 #     - "YYYY-MM-DD" is 10 characters long.
 
-# In[ ]:
+# In[4]:
 
 Tx = 30
 Ty = 10
@@ -134,7 +134,7 @@ print("Yoh.shape:", Yoh.shape)
 # * Let's also look at some examples of preprocessed training examples. 
 # * Feel free to play with `index` in the cell below to navigate the dataset and see how source/target dates are preprocessed. 
 
-# In[ ]:
+# In[5]:
 
 index = 0
 print("Source date:", dataset[index][0])
@@ -272,7 +272,7 @@ print("Target after preprocessing (one-hot):", Yoh[index])
 # dot_product = dot_layer([var1,var2])
 # ```
 
-# In[ ]:
+# In[6]:
 
 # Defined shared layers as global variables
 repeator = RepeatVector(Tx)
@@ -283,7 +283,7 @@ activator = Activation(softmax, name='attention_weights') # We are using a custo
 dotor = Dot(axes = 1)
 
 
-# In[ ]:
+# In[7]:
 
 # GRADED FUNCTION: one_step_attention
 
@@ -302,18 +302,18 @@ def one_step_attention(a, s_prev):
     
     ### START CODE HERE ###
     # Use repeator to repeat s_prev to be of shape (m, Tx, n_s) so that you can concatenate it with all hidden states "a" (≈ 1 line)
-    s_prev = None
+    s_prev = repeator(s_prev)
     # Use concatenator to concatenate a and s_prev on the last axis (≈ 1 line)
     # For grading purposes, please list 'a' first and 's_prev' second, in this order.
-    concat = None
+    concat = concatenator([a,s_prev])
     # Use densor1 to propagate concat through a small fully-connected neural network to compute the "intermediate energies" variable e. (≈1 lines)
-    e = None
+    e = densor1(concat)
     # Use densor2 to propagate e through a small fully-connected neural network to compute the "energies" variable energies. (≈1 lines)
-    energies = None
+    energies = densor2(e)
     # Use "activator" on "energies" to compute the attention weights "alphas" (≈ 1 line)
-    alphas = None
+    alphas = activator(energies)
     # Use dotor together with "alphas" and "a" to compute the context vector to be given to the next (post-attention) LSTM-cell (≈ 1 line)
-    context = None
+    context = dotor([alphas,a])
     ### END CODE HERE ###
     
     return context
@@ -330,7 +330,7 @@ def one_step_attention(a, s_prev):
 
 # **Exercise**: Implement `model()` as explained in figure 1 and the text above. Again, we have defined global layers that will share weights to be used in `model()`.
 
-# In[ ]:
+# In[8]:
 
 n_a = 32 # number of units for the pre-attention, bi-directional LSTM's hidden state 'a'
 n_s = 64 # number of units for the post-attention LSTM's hidden state "s"
@@ -385,7 +385,7 @@ output_layer = Dense(len(machine_vocab), activation=softmax)
 #     model = Model(inputs=[...,...,...], outputs=...)
 #     ```
 
-# In[ ]:
+# In[9]:
 
 # GRADED FUNCTION: model
 
@@ -418,26 +418,26 @@ def model(Tx, Ty, n_a, n_s, human_vocab_size, machine_vocab_size):
     ### START CODE HERE ###
     
     # Step 1: Define your pre-attention Bi-LSTM. (≈ 1 line)
-    a = None
+    a = Bidirectional(LSTM(units=n_a, return_sequences=True))(X)
     
     # Step 2: Iterate for Ty steps
-    for t in range(None):
+    for t in range(Ty):
     
         # Step 2.A: Perform one step of the attention mechanism to get back the context vector at step t (≈ 1 line)
-        context = None
+        context = one_step_attention(a, s)
         
         # Step 2.B: Apply the post-attention LSTM cell to the "context" vector.
         # Don't forget to pass: initial_state = [hidden state, cell state] (≈ 1 line)
-        s, _, c = None
+        s, _, c = post_activation_LSTM_cell(inputs=context, initial_state=[s, c])
         
         # Step 2.C: Apply Dense layer to the hidden state output of the post-attention LSTM (≈ 1 line)
-        out = None
+        out = output_layer(inputs=s)
         
         # Step 2.D: Append "out" to the "outputs" list (≈ 1 line)
-        None
+        outputs.append(out)
     
     # Step 3: Create model instance taking three inputs and returning the list of outputs. (≈ 1 line)
-    model = None
+    model = Model(inputs=[X,s0,c0], outputs=outputs)
     
     ### END CODE HERE ###
     
@@ -446,7 +446,7 @@ def model(Tx, Ty, n_a, n_s, human_vocab_size, machine_vocab_size):
 
 # Run the following cell to create your model.
 
-# In[ ]:
+# In[10]:
 
 model = model(Tx, Ty, n_a, n_s, len(human_vocab), len(machine_vocab))
 
@@ -457,7 +457,7 @@ model = model(Tx, Ty, n_a, n_s, len(human_vocab), len(machine_vocab))
 
 # Let's get a summary of the model to check if it matches the expected output.
 
-# In[ ]:
+# In[11]:
 
 model.summary()
 
@@ -557,11 +557,11 @@ model.summary()
 # model.compile(optimizer=..., loss=..., metrics=[...])
 # ```
 
-# In[ ]:
+# In[12]:
 
 ### START CODE HERE ### (≈2 lines)
-opt = None
-None
+opt = Adam(lr=0.005, beta_1=0.9, beta_2=0.999, decay=0.01)
+model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 ### END CODE HERE ###
 
 
@@ -573,7 +573,7 @@ None
 #     - The list `outputs[i][0], ..., outputs[i][Ty]` represents the true labels (characters) corresponding to the $i^{th}$ training example (`X[i]`). 
 #     - `outputs[i][j]` is the true label of the $j^{th}$ character in the $i^{th}$ training example.
 
-# In[ ]:
+# In[13]:
 
 s0 = np.zeros((m, n_s))
 c0 = np.zeros((m, n_s))
@@ -582,7 +582,7 @@ outputs = list(Yoh.swapaxes(0,1))
 
 # Let's now fit the model and run it for one epoch.
 
-# In[ ]:
+# In[14]:
 
 model.fit([Xoh, s0, c0], outputs, epochs=1, batch_size=100)
 
@@ -595,14 +595,14 @@ model.fit([Xoh, s0, c0], outputs, epochs=1, batch_size=100)
 # 
 # We have run this model for longer, and saved the weights. Run the next cell to load our weights. (By training a model for several minutes, you should be able to obtain a model of similar accuracy, but loading our model will save you time.) 
 
-# In[ ]:
+# In[15]:
 
 model.load_weights('models/model.h5')
 
 
 # You can now see the results on new examples.
 
-# In[ ]:
+# In[16]:
 
 EXAMPLES = ['3 May 1979', '5 April 09', '21th of August 2016', 'Tue 10 Jul 2007', 'Saturday May 9 2018', 'March 3 2001', 'March 3rd 2001', '1 March 2001']
 for example in EXAMPLES:
